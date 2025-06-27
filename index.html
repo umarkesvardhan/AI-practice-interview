@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mock Interview Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            padding-top: 20px;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--primary-color) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+        }
+        
+        .interview-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        #videoPreview {
+            border-radius: 12px;
+            background: #000;
+        }
+        
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .progress-ring {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        
+        .progress-ring__circle {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.3s;
+        }
+        
+        .ai-assistant {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background: rgba(67, 97, 238, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .ai-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-right: 15px;
+            animation: pulse 2s infinite;
+        }
+        
+        .feedback-meter {
+            height: 20px;
+            border-radius: 10px;
+            background: #e9ecef;
+            overflow: hidden;
+        }
+        
+        .feedback-meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+            transition: width 1s ease;
+        }
+        
+        .code-editor {
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            white-space: pre-wrap;
+        }
+        
+        .history-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .history-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .test-case {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .test-case.passed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .test-case.failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .permission-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        
+        .permission-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .floating-btn {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#" onclick="navigateTo('index')">
+                <i class="bi bi-robot"></i> AI Interview Coach
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="#" onclick="navigateTo('history')"><i class="bi bi-clock-history"></i> History</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4" id="main-content">
+        <!-- Content will be loaded here -->
+    </div>
+
+    <!-- Back Button -->
+    <button id="backButton" class="btn btn-secondary back-button" onclick="goBack()" style="display: none;">
+        <i class="bi bi-arrow-left"></i> Back
+    </button>
+
+    <!-- Audio element for AI voice -->
+    <audio id="aiVoice" hidden></audio>
+
+    <!-- Webcam Permission Modal -->
+    <div id="permissionModal" class="permission-modal" style="display: none;">
+        <div class="permission-box">
+            <h3 class="mb-4">Permission Required</h3>
+            <p>To conduct the interview, we need access to your camera and microphone.</p>
+            <p>Please allow the permissions when prompted by your browser.</p>
+            <button id="startWithPermission" class="btn btn-primary mt-3">
+                <i class="bi bi-camera-video me-2"></i> Start Interview
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Application state
+        const appState = {
+            currentPage: 'index',
+            userData: {},
+            interviewState: {
+                isRecording: false,
+                isPaused: false,
+                mediaRecorder: null,
+                recordedChunks: [],
+                videoStream: null,
+                currentQuestionIndex: 0,
+                timer: null,
+                timeLeft: 180,
+                score: 0,
+                responses: []
+            },
+            codingQuestions: [
+                {
+                    question: "Write a function to reverse a string in Python",
+                    language: "python",
+                    solution: `def reverse_string(s):
+    return s[::-1]`,
+                    testCases: [
+                        { input: 'reverse_string("hello")', output: 'olleh' },
+                        { input: 'reverse_string("12345")', output: '54321' },
+                        { input: 'reverse_string("")', output: '' }
+                    ]
+                },
+                {
+                    question: "Implement a stack with push and pop operations in JavaScript",
+                    language: "javascript",
+                    solution: `class Stack {
+    constructor() {
+        this.items = [];
+    }
+    
+    push(element) {
+        this.items.push(element);
+    }
+    
+    pop() {
+        if (this.items.length === 0) return "Underflow";
+        return this.items.pop();
+    }
+}`,
+                    testCases: [
+                        { input: `let stack = new Stack();
+stack.push(1);
+stack.push(2);
+stack.pop();`, output: 2 },
+                        { input: `let stack = new Stack();
+stack.push('a');
+stack.pop();
+stack.pop();`, output: 'Underflow' }
+                    ]
+                },
+                {
+                    question: "Find the factorial of a number using recursion in Java",
+                    language: "java",
+                    solution: `public class Factorial {
+    public static int factorial(int n) {
+        if (n == 0) return 1;
+        return n * factorial(n - 1);
+    }
+}`,
+                    testCases: [
+                        { input: 'factorial(5)', output: 120 },
+                        { input: 'factorial(0)', output: 1 }
+                    ]
+                },
+                {
+                    question: "Check if a string is a palindrome in C++",
+                    language: "cpp",
+                    solution: `#include <string>
+#include <algorithm>
+
+bool isPalindrome(const std::string &s) {
+    std::string reversed = s;
+    std::reverse(reversed.begin(), reversed.end());
+    return s == reversed;
+}`,
+                    testCases: [
+                        { input: 'isPalindrome("racecar")', output: true },
+                        { input: 'isPalindrome("hello")', output: false }
+                    ]
+                },
+                {
+                    question: "Merge two sorted arrays in Python",
+                    language: "python",
+                    solution: `def merge_sorted_arrays(arr1, arr2):
+    return sorted(arr1 + arr2)`,
+                    testCases: [
+                        { input: 'merge_sorted_arrays([1, 3, 5], [2, 4, 6])', output: [1, 2, 3, 4, 5, 6] },
+                        { input: 'merge_sorted_arrays([], [1, 2, 3])', output: [1, 2, 3] }
+                    ]
+                }
+            ],
+            interviewQuestions: [
+                {
+                    type: "personal",
+                    text: "Tell me about yourself.",
+                    timeLimit: 180,
+                    aiResponse: "Hello! I'll be your AI interviewer today. Let's start with a common question. Please tell me about yourself, including your professional background and what brings you here today."
+                },
+                {
+                    type: "technical",
+                    text: "Explain your approach to problem-solving.",
+                    timeLimit: 180,
+                    aiResponse: "That's interesting! Now, could you walk me through your typical approach when faced with a technical problem? How do you break it down and find a solution?"
+                },
+                {
+                    type: "situational",
+                    text: "Describe a time you faced a conflict at work.",
+                    timeLimit: 180,
+                    aiResponse: "Thank you for sharing. Now, could you tell me about a specific situation where you faced a conflict at work? How did you handle it and what was the outcome?"
+                }
+            ],
+            feedbackCriteria: [
+                { name: "Clarity", weight: 0.3 },
+                { name: "Confidence", weight: 0.25 },
+                { name: "Content", weight: 0.25 },
+                { name: "Pace", weight: 0.2 }
+            ],
+            interviewHistory: JSON.parse(localStorage.getItem('interviewHistory')) || []
+        };
+
+        // DOM elements
+        const mainContent = document.getElementById('main-content');
+        const aiVoice = document.getElementById('aiVoice');
+        const backButton = document.getElementById('backButton');
+        const permissionModal = document.getElementById('permissionModal');
+        const startWithPermissionBtn = document.getElementById('startWithPermission');
+
+        // Navigation history
+        let navigationHistory = ['index'];
+
+        // Text-to-speech function
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                
+                // Set a pleasant voice if available
+                const voices = window.speechSynthesis.getVoices();
+                const preferredVoice = voices.find(voice => 
+                    voice.name.includes('Google') || 
+                    voice.name.includes('Samantha') || 
+                    voice.lang.includes('en-US')
+                );
+                
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.log("Text-to-speech not supported");
+            }
+        }
+
+        // Navigation function
+        function navigateTo(page) {
+            navigationHistory.push(page);
+            updateBackButton();
+            appState.currentPage = page;
+            renderPage();
+            window.scrollTo(0, 0);
+        }
+
+        // Go back function
+        function goBack() {
+            if (navigationHistory.length > 1) {
+                navigationHistory.pop();
+                const prevPage = navigationHistory[navigationHistory.length - 1];
+                appState.currentPage = prevPage;
+                renderPage();
+                updateBackButton();
+            }
+        }
+
+        // Update back button visibility
+        function updateBackButton() {
+            backButton.style.display = navigationHistory.length > 1 ? 'block' : 'none';
+        }
+
+        // Helper function to get score color
+        function getScoreColor(score) {
+            if (score >= 80) return 'success';
+            if (score >= 60) return 'primary';
+            if (score >= 40) return 'warning';
+            return 'danger';
+        }
+
+        // Page templates
+        const pages = {
+            index: `
+                <div class="row justify-content-center">
+                    <div class="col-md-8 text-center py-5">
+                        <h1 class="display-4 mb-4">AI-Powered Interview Preparation</h1>
+                        <p class="lead mb-5">Practice with our AI assistant and get instant feedback on your performance</p>
+                        <button onclick="navigateTo('create_profile')" class="btn btn-primary btn-lg px-5 py-3 floating-btn">
+                            <i class="bi bi-play-circle me-2"></i> Start Practice
+                        </button>
+                    </div>
+                </div>
+            `,
+
+            create_profile: `
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card p-4">
+                            <h2 class="mb-4 text-center">Create Your Profile</h2>
+                            <form id="profile-form">
+                                <div class="mb-3">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Target Job Role</label>
+                                    <input type="text" class="form-control" id="jobRole" required>
+                                </div>
+                                <div class="d-flex justify-content-between mt-4">
+                                    <button type="button" onclick="goBack()" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left me-2"></i> Back
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        Continue <i class="bi bi-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            coding_quiz: `
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card p-4 mb-4">
+                            <h2 class="mb-4 text-center">Coding Assessment</h2>
+                            <p class="text-center mb-4">Complete these 5 coding questions to assess your technical skills</p>
+                            
+                            <div id="codingQuestionsContainer">
+                                ${appState.codingQuestions.map((q, index) => `
+                                    <div class="mb-5" id="question-${index}">
+                                        <h4>Question ${index + 1}: ${q.question}</h4>
+                                        <p><small class="text-muted">Language: ${q.language}</small></p>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Your Solution:</label>
+                                            <textarea class="form-control code-editor" rows="8" 
+                                                placeholder="Write your code here..." 
+                                                id="solution-${index}"></textarea>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="runTestCases(${index})">
+                                                Run Test Cases
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="showSolution(${index})">
+                                                Show Solution
+                                            </button>
+                                        </div>
+                                        
+                                        <div id="testResults-${index}" style="display: none;"></div>
+                                        
+                                        <div id="solution-${index}-display" class="alert alert-info" style="display: none;">
+                                            <pre>${q.solution}</pre>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" onclick="goBack()" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i> Back
+                                </button>
+                                <button type="button" onclick="navigateTo('interview')" class="btn btn-primary">
+                                    Continue to Interview <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            interview: `
+                <div class="interview-container">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card p-4 mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h3>Interview Session</h3>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress-ring me-3">
+                                            <svg width="80" height="80">
+                                                <circle class="progress-ring__circle-bg" stroke="#e9ecef" stroke-width="6" fill="transparent" r="30" cx="40" cy="40"/>
+                                                <circle class="progress-ring__circle" stroke="#4361ee" stroke-width="6" stroke-linecap="round" fill="transparent" r="30" cx="40" cy="40"/>
+                                            </svg>
+                                            <div class="timer-display position-absolute top-50 start-50 translate-middle"></div>
+                                        </div>
+                                        <button id="saveVideoBtn" class="btn btn-outline-primary" disabled>
+                                            <i class="bi bi-download me-2"></i> Save
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="ai-assistant">
+                                    <div class="ai-icon">
+                                        <i class="bi bi-robot"></i>
+                                    </div>
+                                    <div id="questionDisplay" class="flex-grow-1">
+                                        <h4>Ready when you are!</h4>
+                                        <p class="mb-0">Click "Start Interview" to begin</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="recording-controls btn-group d-flex gap-2 mb-4">
+                                    <button id="startInterview" class="btn btn-success flex-grow-1">
+                                        <i class="bi bi-record-circle me-2"></i> Start Interview
+                                    </button>
+                                    <button id="pauseRecording" class="btn btn-warning flex-grow-1" disabled>
+                                        <i class="bi bi-pause-circle me-2"></i> Pause
+                                    </button>
+                                    <button id="stopRecording" class="btn btn-danger flex-grow-1" disabled>
+                                        <i class="bi bi-stop-circle me-2"></i> Stop
+                                    </button>
+                                    <button id="nextQuestion" class="btn btn-primary flex-grow-1" disabled>
+                                        Next <i class="bi bi-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card p-4 h-100">
+                                <div class="card-body text-center">
+                                    <h4 class="mb-4">Video Preview</h4>
+                                    <video id="videoPreview" autoplay muted class="mb-4"></video>
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        Answer each question within 3 minutes
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            feedback: `
+                <div class="row justify-content-center">
+                    <div class="col-md-10">
+                        <div class="card p-4 mb-4">
+                            <div class="text-center mb-5">
+                                <h2>Interview Feedback</h2>
+                                <p class="lead">Here's how you performed</p>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4 class="mb-4">Performance Analysis</h4>
+                                    <div id="feedbackMetrics" class="mb-4"></div>
+                                    <div class="mb-4">
+                                        <h5>Overall Score</h5>
+                                        <div class="display-4 text-primary fw-bold" id="overallScore">0</div>
+                                        <div class="feedback-meter mt-2">
+                                            <div class="feedback-meter-fill" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h4 class="mb-4">Suggestions</h4>
+                                            <div id="suggestionsList"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-5">
+                                <h4 class="mb-4">Your Recording</h4>
+                                <video id="recordedVideo" controls class="w-100 rounded"></video>
+                            </div>
+                            
+                            <div class="mt-5">
+                                <h4 class="mb-4">Feedback Form</h4>
+                                <form id="feedbackForm">
+                                    <div class="mb-3">
+                                        <label class="form-label">How helpful was this practice session?</label>
+                                        <div class="rating">
+                                            ${[1, 2, 3, 4, 5].map(i => `
+                                                <input type="radio" id="star${i}" name="rating" value="${i}">
+                                                <label for="star${i}">★</label>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Additional comments</label>
+                                        <textarea class="form-control" rows="3" placeholder="What did you like or what could be improved?"></textarea>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" onclick="goBack()" class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-left me-2"></i> Back
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            Submit Feedback <i class="bi bi-check-lg ms-2"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            history: `
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card p-4">
+                            <h2 class="mb-4 text-center">Interview History</h2>
+                            
+                            <div id="historyList">
+                                ${appState.interviewHistory.length > 0 ? 
+                                    appState.interviewHistory.map((item, index) => `
+                                        <div class="card mb-3 history-item" onclick="viewHistoryItem(${index})">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <h5>${item.title}</h5>
+                                                        <p class="mb-1">Score: <span class="badge bg-${getScoreColor(item.score)}">${item.score}/100</span></p>
+                                                        <small class="text-muted">${item.date}</small>
+                                                    </div>
+                                                    <div>
+                                                        <i class="bi bi-play-circle fs-4"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('') : 
+                                    '<div class="alert alert-info">No interview history yet. Complete an interview to see your history.</div>'}
+                            </div>
+                            
+                            <div class="d-flex justify-content-end mt-3">
+                                <button onclick="navigateTo('index')" class="btn btn-primary">
+                                    <i class="bi bi-house me-2"></i> Return Home
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        // Render the current page
+        function renderPage() {
+            mainContent.innerHTML = pages[appState.currentPage];
+            
+            // Initialize page-specific functionality
+            switch(appState.currentPage) {
+                case 'create_profile':
+                    setupProfilePage();
+                    break;
+                case 'coding_quiz':
+                    setupCodingQuizPage();
+                    break;
+                case 'interview':
+                    setupInterviewPage();
+                    break;
+                case 'feedback':
+                    setupFeedbackPage();
+                    break;
+                case 'history':
+                    setupHistoryPage();
+                    break;
+            }
+        }
+
+        function setupProfilePage() {
+            document.getElementById('profile-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                appState.userData = {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    jobRole: document.getElementById('jobRole').value
+                };
+                navigateTo('coding_quiz');
+            });
+        }
+
+        function setupCodingQuizPage() {
+            // Run test cases button functionality
+            window.runTestCases = function(index) {
+                const solution = document.getElementById(`solution-${index}`).value;
+                const testResults = document.getElementById(`testResults-${index}`);
+                testResults.style.display = 'block';
+                testResults.innerHTML = '<h5>Test Results:</h5>';
+                
+                const question = appState.codingQuestions[index];
+                let allPassed = true;
+                
+                question.testCases.forEach((testCase, i) => {
+                    try {
+                        // This is a simplified evaluation - in a real app, you'd use a secure code evaluation service
+                        const func = new Function(solution + `; return ${testCase.input.split('(')[0]}`);
+                        const result = func();
+                        
+                        // Deep comparison of results
+                        const passed = JSON.stringify(result) === JSON.stringify(testCase.output);
+                        
+                        if (passed) {
+                            testResults.innerHTML += `
+                                <div class="test-case passed">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    Test Case ${i+1}: Passed
+                                    <div><small>Input: ${testCase.input}</small></div>
+                                    <div><small>Expected: ${JSON.stringify(testCase.output)}</small></div>
+                                    <div><small>Received: ${JSON.stringify(result)}</small></div>
+                                </div>
+                            `;
+                        } else {
+                            allPassed = false;
+                            testResults.innerHTML += `
+                                <div class="test-case failed">
+                                    <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                    Test Case ${i+1}: Failed
+                                    <div><small>Input: ${testCase.input}</small></div>
+                                    <div><small>Expected: ${JSON.stringify(testCase.output)}</small></div>
+                                    <div><small>Received: ${JSON.stringify(result)}</small></div>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        allPassed = false;
+                        testResults.innerHTML += `
+                            <div class="test-case failed">
+                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                Test Case ${i+1}: Error
+                                <div><small>${error.message}</small></div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                if (allPassed) {
+                    testResults.innerHTML += `
+                        <div class="alert alert-success mt-2">
+                            <i class="bi bi-check-circle me-2"></i>
+                            All test cases passed! Great job!
+                        </div>
+                    `;
+                } else {
+                    testResults.innerHTML += `
+                        <div class="alert alert-danger mt-2">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Some test cases failed. Try again!
+                        </div>
+                    `;
+                }
+            };
+            
+            // Show solution button functionality
+            window.showSolution = function(index) {
+                const solutionDisplay = document.getElementById(`solution-${index}-display`);
+                solutionDisplay.style.display = solutionDisplay.style.display === 'none' ? 'block' : 'none';
+            };
+        }
+
+        function setupInterviewPage() {
+            const startBtn = document.getElementById('startInterview');
+            const pauseBtn = document.getElementById('pauseRecording');
+            const stopBtn = document.getElementById('stopRecording');
+            const nextBtn = document.getElementById('nextQuestion');
+            const saveBtn = document.getElementById('saveVideoBtn');
+            const videoPreview = document.getElementById('videoPreview');
+            const questionDisplay = document.getElementById('questionDisplay');
+            const timerDisplay = document.querySelector('.timer-display');
+            const progressCircle = document.querySelector('.progress-ring__circle');
+            
+            // Initialize timer circle
+            const radius = 30;
+            const circumference = 2 * Math.PI * radius;
+            progressCircle.style.strokeDasharray = circumference;
+            progressCircle.style.strokeDashoffset = circumference;
+            
+            // Update timer display
+            function updateTimer() {
+                const minutes = Math.floor(appState.interviewState.timeLeft / 60);
+                const seconds = appState.interviewState.timeLeft % 60;
+                timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                // Update progress circle
+                const offset = circumference - (appState.interviewState.timeLeft / 180) * circumference;
+                progressCircle.style.strokeDashoffset = offset;
+                
+                if (appState.interviewState.timeLeft <= 10) {
+                    timerDisplay.style.color = '#dc3545';
+                    progressCircle.style.stroke = '#dc3545';
+                }
+            }
+            
+            // Start timer
+            function startTimer() {
+                if (appState.interviewState.timer) {
+                    clearInterval(appState.interviewState.timer);
+                }
+                
+                appState.interviewState.timeLeft = appState.interviewQuestions[appState.interviewState.currentQuestionIndex].timeLimit;
+                updateTimer();
+                
+                appState.interviewState.timer = setInterval(() => {
+                    if (!appState.interviewState.isPaused) {
+                        appState.interviewState.timeLeft--;
+                        updateTimer();
+                        
+                        if (appState.interviewState.timeLeft <= 0) {
+                            clearInterval(appState.interviewState.timer);
+                            speak("Time's up! Let's move to the next question.");
+                            nextQuestion();
+                        }
+                    }
+                }, 1000);
+            }
+            
+            // Ask question with AI voice
+            function askQuestion() {
+                const currentQuestion = appState.interviewQuestions[appState.interviewState.currentQuestionIndex];
+                questionDisplay.innerHTML = `
+                    <h4>${currentQuestion.text}</h4>
+                    <p class="mb-0">You have ${currentQuestion.timeLimit / 60} minutes to answer</p>
+                `;
+                
+                // Speak the question and AI introduction
+                speak(currentQuestion.aiResponse);
+                startTimer();
+            }
+            
+            // Move to next question
+            function nextQuestion() {
+                clearInterval(appState.interviewState.timer);
+                appState.interviewState.currentQuestionIndex++;
+                
+                if (appState.interviewState.currentQuestionIndex < appState.interviewQuestions.length) {
+                    askQuestion();
+                } else {
+                    endInterview();
+                }
+            }
+            
+            // End interview
+            function endInterview() {
+                clearInterval(appState.interviewState.timer);
+                appState.interviewState.mediaRecorder.stop();
+                appState.interviewState.videoStream.getTracks().forEach(track => track.stop());
+                appState.interviewState.isRecording = false;
+                
+                // Generate feedback
+                generateFeedback();
+                
+                // Save to history
+                saveInterviewToHistory();
+                
+                navigateTo('feedback');
+            }
+            
+            // Generate feedback
+            function generateFeedback() {
+                // Calculate random scores for demo purposes
+                appState.feedback = {
+                    clarity: Math.floor(Math.random() * 20) + 75,
+                    confidence: Math.floor(Math.random() * 20) + 70,
+                    content: Math.floor(Math.random() * 20) + 65,
+                    pace: Math.floor(Math.random() * 20) + 80,
+                    suggestions: [
+                        "Try to structure your answers more clearly using the STAR method (Situation, Task, Action, Result)",
+                        "Work on maintaining consistent eye contact with the camera",
+                        "Provide more specific examples from your experience",
+                        "Practice speaking at a slightly slower pace for better clarity"
+                    ]
+                };
+                
+                // Calculate overall score
+                appState.feedback.overall = Math.round(
+                    (appState.feedback.clarity * 0.3) +
+                    (appState.feedback.confidence * 0.25) +
+                    (appState.feedback.content * 0.25) +
+                    (appState.feedback.pace * 0.2)
+                );
+            }
+            
+            // Save interview to history
+            function saveInterviewToHistory() {
+                const blob = new Blob(appState.interviewState.recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                
+                const historyItem = {
+                    title: `${appState.userData.jobRole} Practice - ${new Date().toLocaleDateString()}`,
+                    score: appState.feedback.overall,
+                    date: new Date().toLocaleString(),
+                    videoUrl: url,
+                    feedback: appState.feedback,
+                    videoBlob: Array.from(new Uint8Array(blob)) // Store blob data for download
+                };
+                
+                appState.interviewHistory.unshift(historyItem);
+                
+                // Keep only the last 10 interviews
+                if (appState.interviewHistory.length > 10) {
+                    appState.interviewHistory.pop();
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('interviewHistory', JSON.stringify(appState.interviewHistory));
+            }
+            
+            // Start interview with permission check
+            startBtn.addEventListener('click', () => {
+                permissionModal.style.display = 'flex';
+            });
+            
+            // Start with permission button
+            startWithPermissionBtn.addEventListener('click', async () => {
+                permissionModal.style.display = 'none';
+                
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: true, 
+                        video: true 
+                    });
+                    
+                    videoPreview.srcObject = stream;
+                    appState.interviewState.videoStream = stream;
+                    appState.interviewState.mediaRecorder = new MediaRecorder(stream);
+                    appState.interviewState.recordedChunks = [];
+                    
+                    appState.interviewState.mediaRecorder.ondataavailable = e => {
+                        if (e.data.size > 0) {
+                            appState.interviewState.recordedChunks.push(e.data);
+                        }
+                    };
+                    
+                    appState.interviewState.mediaRecorder.start(100);
+                    appState.interviewState.isRecording = true;
+                    startBtn.disabled = true;
+                    pauseBtn.disabled = false;
+                    stopBtn.disabled = false;
+                    nextBtn.disabled = false;
+                    saveBtn.disabled = false;
+                    
+                    // Start with first question
+                    askQuestion();
+                    
+                } catch (err) {
+                    console.error("Error accessing media devices:", err);
+                    alert("Could not access camera/microphone. Please check permissions.");
+                }
+            });
+            
+            // Pause recording
+            pauseBtn.addEventListener('click', () => {
+                if (appState.interviewState.isRecording) {
+                    if (appState.interviewState.isPaused) {
+                        // Resume
+                        appState.interviewState.isPaused = false;
+                        pauseBtn.innerHTML = '<i class="bi bi-pause-circle me-2"></i> Pause';
+                        pauseBtn.classList.remove('btn-secondary');
+                        pauseBtn.classList.add('btn-warning');
+                    } else {
+                        // Pause
+                        appState.interviewState.isPaused = true;
+                        pauseBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i> Resume';
+                        pauseBtn.classList.remove('btn-warning');
+                        pauseBtn.classList.add('btn-secondary');
+                    }
+                }
+            });
+            
+            // Stop recording
+            stopBtn.addEventListener('click', () => {
+                if (appState.interviewState.mediaRecorder && appState.interviewState.isRecording) {
+                    endInterview();
+                }
+            });
+            
+            // Next question
+            nextBtn.addEventListener('click', nextQuestion);
+            
+            // Save video
+            saveBtn.addEventListener('click', () => {
+                if (appState.interviewState.recordedChunks.length === 0) {
+                    alert("No recording available to save");
+                    return;
+                }
+                
+                const blob = new Blob(appState.interviewState.recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `interview_${new Date().toISOString().slice(0, 10)}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+            });
+        }
+
+        function setupFeedbackPage() {
+            // Display recorded video
+            const recordedVideo = document.getElementById('recordedVideo');
+            const blob = new Blob(appState.interviewState.recordedChunks, { type: 'video/webm' });
+            recordedVideo.src = URL.createObjectURL(blob);
+            
+            // Display feedback metrics
+            const feedbackMetrics = document.getElementById('feedbackMetrics');
+            feedbackMetrics.innerHTML = appState.feedbackCriteria.map(criteria => `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>${criteria.name}</span>
+                        <span class="fw-bold">${appState.feedback[criteria.name.toLowerCase()]}%</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-primary" role="progressbar" 
+                             style="width: ${appState.feedback[criteria.name.toLowerCase()]}%" 
+                             aria-valuenow="${appState.feedback[criteria.name.toLowerCase()]}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100"></div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Display overall score
+            const overallScore = document.getElementById('overallScore');
+            overallScore.textContent = appState.feedback.overall;
+            document.querySelector('.feedback-meter-fill').style.width = `${appState.feedback.overall}%`;
+            
+            // Animate score display
+            setTimeout(() => {
+                overallScore.classList.add('animate__animated', 'animate__pulse');
+            }, 500);
+            
+            // Display suggestions
+            const suggestionsList = document.getElementById('suggestionsList');
+            suggestionsList.innerHTML = appState.feedback.suggestions.map(suggestion => `
+                <div class="alert alert-info mb-2 animate__animated animate__fadeIn">
+                    <i class="bi bi-lightbulb me-2"></i> ${suggestion}
+                </div>
+            `).join('');
+            
+            // Handle feedback form submission
+            document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Thank you for your feedback!');
+                navigateTo('index');
+            });
+        }
+
+        function setupHistoryPage() {
+            window.viewHistoryItem = function(index) {
+                const item = appState.interviewHistory[index];
+                
+                // Create a modal to view history item details
+                const modalHTML = `
+                    <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="historyModalLabel">${item.title}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Date:</strong> ${item.date}</p>
+                                            <p><strong>Score:</strong> <span class="badge bg-${getScoreColor(item.score)}">${item.score}/100</span></p>
+                                            
+                                            <h5 class="mt-4">Feedback</h5>
+                                            <ul class="list-group">
+                                                <li class="list-group-item">Clarity: ${item.feedback.clarity}%</li>
+                                                <li class="list-group-item">Confidence: ${item.feedback.confidence}%</li>
+                                                <li class="list-group-item">Content: ${item.feedback.content}%</li>
+                                                <li class="list-group-item">Pace: ${item.feedback.pace}%</li>
+                                            </ul>
+                                            
+                                            <h5 class="mt-4">Suggestions</h5>
+                                            <div class="alert alert-info">
+                                                <ul>
+                                                    ${item.feedback.suggestions.map(s => `<li>${s}</li>`).join('')}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <video src="${item.videoUrl}" controls class="w-100"></video>
+                                            <button onclick="downloadRecording(${index})" class="btn btn-primary w-100 mt-2">
+                                                <i class="bi bi-download me-2"></i> Download Recording
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add modal to DOM
+                const modalDiv = document.createElement('div');
+                modalDiv.innerHTML = modalHTML;
+                document.body.appendChild(modalDiv);
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('historyModal'));
+                modal.show();
+                
+                // Remove modal from DOM after it's closed
+                document.getElementById('historyModal').addEventListener('hidden.bs.modal', function() {
+                    document.body.removeChild(modalDiv);
+                });
+            };
+            
+            // Download recording from history
+            window.downloadRecording = function(index) {
+                const item = appState.interviewHistory[index];
+                const blob = new Blob([new Uint8Array(item.videoBlob)], { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `interview_${item.date.replace(/[/:, ]/g, '_')}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+            };
+        }
+
+        // Initialize the app
+        navigateTo('index');
+    </script>
+</body>
+</html>
